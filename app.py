@@ -154,15 +154,17 @@ def health():
     })
 
 if __name__ == '__main__':
+    import os
     print("🚀 Starting Career Prediction Web UI...")
     print("=" * 50)
     
     # Load models at startup
     if load_models():
         print("\n🌐 Starting web server...")
-        print("🔗 Open your browser and go to: http://localhost:5000")
+        port = int(os.environ.get('PORT', 5000))
+        print(f"🔗 Server will start on port: {port}")
         print("🛑 Press Ctrl+C to stop the server")
-        app.run(debug=True, host='0.0.0.0', port=5000)
+        app.run(debug=False, host='0.0.0.0', port=port)
     else:
         print("\n❌ Cannot start web server without trained models.")
         print("Please run 'python main.py' first to train the models.")

@@ -14,3 +14,4 @@ shap==0.42.1
 jupyter==1.0.0
 ipywidgets==8.0.7
 flask==2.3.2
+gunicorn==21.2.0
