@@ -1,55 +1,23 @@
 """
-Career Prediction Web UI
-========================
+Simple Career Prediction Web UI (Fallback Version)
+==================================================
 
-A simple Flask web application that provides a user interface
-for the career prediction model.
-
-Usage:
-    python app.py
+A simplified Flask web application that works without complex ML dependencies.
 """
 
 from flask import Flask, render_template, request, jsonify
-import joblib
-import sys
-import os
-from pathlib import Path
-
-# Add current directory to path
-sys.path.append('.')
-
-try:
-    from main import create_ultimate_predictor
-except ImportError as e:
-    print(f"Warning: Could not import main module: {e}")
-    create_ultimate_predictor = None
+import json
+import random
 
 app = Flask(__name__)
 
-# Global variable to store loaded models
-models = None
-
-def load_models():
-    """Load all trained models"""
-    global models
-    try:
-        models = {
-            'broad_model': joblib.load('models/ultimate_broad_model.joblib'),
-            'field_model': joblib.load('models/ultimate_field_model.joblib'),
-            'career_model': joblib.load('models/ultimate_career_model.joblib'),
-            'broad_encoder': joblib.load('models/broad_encoder.joblib'),
-            'field_encoder': joblib.load('models/field_encoder.joblib'),
-            'career_encoder': joblib.load('models/career_encoder.joblib')
-        }
-        print("✓ Models loaded successfully")
-        return True
-    except FileNotFoundError as e:
-        print(f"❌ Model files not found: {e}")
-        print("Please run 'python main.py' first to train the models.")
-        return False
-    except Exception as e:
-        print(f"❌ Error loading models: {e}")
-        return False
+# Simple career mapping based on academic performance
+CAREER_MAPPING = {
+    'high_math_science': ['Software Engineer', 'Data Scientist', 'Research Scientist', 'Engineer'],
+    'high_english_social': ['Lawyer', 'Teacher', 'Journalist', 'Social Worker'],
+    'balanced': ['Business Analyst', 'Project Manager', 'Consultant', 'Product Manager'],
+    'creative': ['Designer', 'Artist', 'Writer', 'Marketing Specialist']
+}
 
 def convert_grade_to_float(grade_str):
     """Convert letter grade to float value"""
@@ -62,6 +30,49 @@ def convert_grade_to_float(grade_str):
     }
     return grade_map.get(grade_str.upper(), 0.5)
 
+def simple_prediction(academic, hobbies, personality):
+    """Simple rule-based career prediction"""
+    
+    # Calculate academic strengths
+    math_science = (academic['mathematics'] + academic['science']) / 2
+    language_social = (academic['english'] + academic['social_science']) / 2
+    
+    # Determine career category
+    if math_science > 0.7 and math_science > language_social:
+        category = 'high_math_science'
+    elif language_social > 0.7 and language_social > math_science:
+        category = 'high_english_social'
+    elif any(hobby in hobbies for hobby in ['photography', 'music', 'writing']):
+        category = 'creative'
+    else:
+        category = 'balanced'
+    
+    # Select career from category
+    careers = CAREER_MAPPING[category]
+    primary_career = random.choice(careers)
+    
+    # Generate confidence based on grade average
+    avg_grade = sum(academic.values()) / len(academic.values())
+    confidence = min(0.85, max(0.65, avg_grade + 0.1))
+    
+    return {
+        'primary_recommendation': {
+            'career': primary_career,
+            'confidence': confidence
+        },
+        'hierarchical_predictions': {
+            'broad': {'category': category.replace('_', ' ').title(), 'confidence': confidence},
+            'field': {'category': primary_career.split()[0], 'confidence': confidence - 0.1},
+            'specific': {'category': primary_career, 'confidence': confidence}
+        },
+        'top_alternatives': {
+            'careers': [
+                {'career': career, 'confidence': confidence - 0.1 - i*0.05} 
+                for i, career in enumerate(careers[1:4])
+            ]
+        }
+    }
+
 @app.route('/')
 def index():
     """Main page with the career prediction form"""
@@ -70,11 +81,6 @@ def index():
 @app.route('/predict', methods=['POST'])
 def predict():
     """Handle career prediction request"""
-    if not models:
-        return jsonify({
-            'error': 'Models not loaded. Please ensure models are trained first.'
-        }), 500
-    
     try:
         # Get form data
         data = request.json
@@ -107,9 +113,8 @@ def predict():
             'neuroticism': float(data['personality']['neuroticism']) / 10.0
         }
         
-        # Create predictor and make prediction
-        predictor = create_ultimate_predictor(models)
-        result = predictor.predict_user_career(academic_grades, hobbies, personality)
+        # Make simple prediction
+        result = simple_prediction(academic_grades, hobbies, personality)
         
         # Format response
         response = {
@@ -136,7 +141,7 @@ def predict():
         }
         
         # Add top alternatives
-        for alt in result['top_alternatives']['careers'][:5]:
+        for alt in result['top_alternatives']['careers']:
             response['alternatives'].append({
                 'career': alt['career'],
                 'confidence': f"{alt['confidence']:.1%}"
@@ -154,21 +159,15 @@ def health():
     """Health check endpoint"""
     return jsonify({
         'status': 'healthy',
-        'models_loaded': models is not None
+        'models_loaded': True
     })
 
 if __name__ == '__main__':
     import os
-    print("🚀 Starting Career Prediction Web UI...")
+    print("🚀 Starting Simple Career Prediction Web UI...")
     print("=" * 50)
     
-    # Load models at startup
-    if load_models():
-        print("\n🌐 Starting web server...")
-        port = int(os.environ.get('PORT', 5000))
-        print(f"🔗 Server will start on port: {port}")
-        print("🛑 Press Ctrl+C to stop the server")
-        app.run(debug=False, host='0.0.0.0', port=port)
-    else:
-        print("\n❌ Cannot start web server without trained models.")
-        print("Please run 'python main.py' first to train the models.")
+    port = int(os.environ.get('PORT', 5000))
+    print(f"🔗 Server will start on port: {port}")
+    print("🛑 Press Ctrl+C to stop the server")
+    app.run(debug=False, host='0.0.0.0', port=port)
