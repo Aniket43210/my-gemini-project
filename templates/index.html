@@ -1,0 +1,891 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Career Prediction Tool</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 300;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .form-container {
+            padding: 40px;
+        }
+
+        .section {
+            margin-bottom: 40px;
+            padding: 25px;
+            border: 2px solid #ecf0f1;
+            border-radius: 10px;
+            background: #f8f9fa;
+        }
+
+        .section h2 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+            display: flex;
+            align-items: center;
+        }
+
+        .section-icon {
+            margin-right: 10px;
+            font-size: 1.2em;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .form-group select,
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group select:focus,
+        .form-group input:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        }
+
+        .hobby-item {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border: 2px solid #ecf0f1;
+            transition: all 0.3s ease;
+        }
+
+        .hobby-item.selected {
+            border-color: #3498db;
+            background: #f0f8ff;
+        }
+
+        .hobby-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .hobby-checkbox {
+            margin-right: 15px;
+            transform: scale(1.2);
+        }
+
+        .hobby-name {
+            font-weight: 600;
+            color: #2c3e50;
+            text-transform: capitalize;
+        }
+
+        .hobby-details {
+            display: none;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+        }
+
+        .hobby-details.show {
+            display: grid;
+        }
+
+        .slider-container {
+            position: relative;
+        }
+
+        .slider {
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: #ddd;
+            outline: none;
+            margin: 10px 0;
+        }
+
+        .slider::-webkit-slider-thumb {
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #3498db;
+            cursor: pointer;
+        }
+
+        .slider::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #3498db;
+            cursor: pointer;
+            border: none;
+        }
+
+        .slider-value {
+            font-weight: 600;
+            color: #3498db;
+            text-align: center;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(46, 204, 113, 0.3);
+        }
+
+        .submit-btn:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .results {
+            display: none;
+            margin-top: 30px;
+            padding: 30px;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 10px;
+            border: 2px solid #dee2e6;
+        }
+
+        .results.show {
+            display: block;
+        }
+
+        .primary-result {
+            text-align: center;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border: 3px solid #27ae60;
+        }
+
+        .career-title {
+            font-size: 2em;
+            color: #27ae60;
+            margin-bottom: 10px;
+        }
+
+        .confidence {
+            font-size: 1.2em;
+            color: #666;
+            font-weight: 600;
+        }
+
+        .hierarchy-results {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .hierarchy-item {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            border: 2px solid #ecf0f1;
+        }
+
+        .hierarchy-label {
+            font-size: 0.9em;
+            color: #666;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+
+        .hierarchy-value {
+            font-size: 1.1em;
+            color: #2c3e50;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .alternatives {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+        }
+
+        .alternatives h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+        }
+
+        .alternative-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #ecf0f1;
+        }
+
+        .alternative-item:last-child {
+            border-bottom: none;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            display: none;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error {
+            background: #e74c3c;
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .error.show {
+            display: block;
+        }
+
+        .personality-question {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 2px solid #ecf0f1;
+        }
+
+        .question-text {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-size: 1.1em;
+        }
+
+        .question-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+        }
+
+        .option-item {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            border: 2px solid #ecf0f1;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: #f8f9fa;
+        }
+
+        .option-item:hover {
+            border-color: #3498db;
+            background: #f0f8ff;
+        }
+
+        .option-item.selected {
+            border-color: #3498db;
+            background: #e3f2fd;
+        }
+
+        .option-radio {
+            margin-right: 10px;
+            transform: scale(1.2);
+        }
+
+        .option-text {
+            font-size: 0.95em;
+            color: #2c3e50;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+                border-radius: 10px;
+            }
+            
+            .form-container {
+                padding: 20px;
+            }
+            
+            .header {
+                padding: 20px;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+            
+            .hierarchy-results {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎯 Career Prediction Tool</h1>
+            <p>Discover your ideal career path based on your academic performance, hobbies, and personality</p>
+        </div>
+
+        <div class="form-container">
+            <form id="careerForm">
+                <!-- Academic Grades Section -->
+                <div class="section">
+                    <h2><span class="section-icon">📚</span>Academic Grades</h2>
+                    <p style="margin-bottom: 20px; color: #666;">Select your grades in the following subjects:</p>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="math-grade">Mathematics</label>
+                            <select id="math-grade" name="mathematics" required>
+                                <option value="">Select Grade</option>
+                                <option value="A+">A+ (90-100%)</option>
+                                <option value="A">A (85-89%)</option>
+                                <option value="B+">B+ (80-84%)</option>
+                                <option value="B">B (75-79%)</option>
+                                <option value="C+">C+ (70-74%)</option>
+                                <option value="C">C (65-69%)</option>
+                                <option value="D+">D+ (60-64%)</option>
+                                <option value="D">D (55-59%)</option>
+                                <option value="F">F (Below 55%)</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="science-grade">Science</label>
+                            <select id="science-grade" name="science" required>
+                                <option value="">Select Grade</option>
+                                <option value="A+">A+ (90-100%)</option>
+                                <option value="A">A (85-89%)</option>
+                                <option value="B+">B+ (80-84%)</option>
+                                <option value="B">B (75-79%)</option>
+                                <option value="C+">C+ (70-74%)</option>
+                                <option value="C">C (65-69%)</option>
+                                <option value="D+">D+ (60-64%)</option>
+                                <option value="D">D (55-59%)</option>
+                                <option value="F">F (Below 55%)</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="english-grade">English</label>
+                            <select id="english-grade" name="english" required>
+                                <option value="">Select Grade</option>
+                                <option value="A+">A+ (90-100%)</option>
+                                <option value="A">A (85-89%)</option>
+                                <option value="B+">B+ (80-84%)</option>
+                                <option value="B">B (75-79%)</option>
+                                <option value="C+">C+ (70-74%)</option>
+                                <option value="C">C (65-69%)</option>
+                                <option value="D+">D+ (60-64%)</option>
+                                <option value="D">D (55-59%)</option>
+                                <option value="F">F (Below 55%)</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="social-grade">Social Science</label>
+                            <select id="social-grade" name="social_science" required>
+                                <option value="">Select Grade</option>
+                                <option value="A+">A+ (90-100%)</option>
+                                <option value="A">A (85-89%)</option>
+                                <option value="B+">B+ (80-84%)</option>
+                                <option value="B">B (75-79%)</option>
+                                <option value="C+">C+ (70-74%)</option>
+                                <option value="C">C (65-69%)</option>
+                                <option value="D+">D+ (60-64%)</option>
+                                <option value="D">D (55-59%)</option>
+                                <option value="F">F (Below 55%)</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="language-grade">Second Language</label>
+                            <select id="language-grade" name="second_language" required>
+                                <option value="">Select Grade</option>
+                                <option value="A+">A+ (90-100%)</option>
+                                <option value="A">A (85-89%)</option>
+                                <option value="B+">B+ (80-84%)</option>
+                                <option value="B">B (75-79%)</option>
+                                <option value="C+">C+ (70-74%)</option>
+                                <option value="C">C (65-69%)</option>
+                                <option value="D+">D+ (60-64%)</option>
+                                <option value="D">D (55-59%)</option>
+                                <option value="F">F (Below 55%)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Hobbies Section -->
+                <div class="section">
+                    <h2><span class="section-icon">🎨</span>Hobbies & Interests</h2>
+                    <p style="margin-bottom: 20px; color: #666;">Select your hobbies and rate your experience:</p>
+                    
+                    <div id="hobbies-container">
+                        <!-- Hobbies will be populated by JavaScript -->
+                    </div>
+                </div>
+
+                <!-- Personality Section -->
+                <div class="section">
+                    <h2><span class="section-icon">🧠</span>About Your Personality</h2>
+                    <p style="margin-bottom: 20px; color: #666;">Answer these simple questions about yourself. Choose the option that describes you best:</p>
+                    
+                    <div id="personality-questions">
+                        <!-- Questions will be populated by JavaScript -->
+                    </div>
+                </div>
+
+                <button type="submit" class="submit-btn" id="submit-btn">
+                    🔮 Predict My Career
+                </button>
+            </form>
+
+            <!-- Loading -->
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Analyzing your profile and predicting your ideal career...</p>
+            </div>
+
+            <!-- Error Display -->
+            <div class="error" id="error"></div>
+
+            <!-- Results -->
+            <div class="results" id="results">
+                <div class="primary-result">
+                    <div class="career-title" id="primary-career"></div>
+                    <div class="confidence" id="primary-confidence"></div>
+                </div>
+
+                <div class="hierarchy-results">
+                    <div class="hierarchy-item">
+                        <div class="hierarchy-label">Broad Category</div>
+                        <div class="hierarchy-value" id="broad-category"></div>
+                        <div class="confidence" id="broad-confidence"></div>
+                    </div>
+                    <div class="hierarchy-item">
+                        <div class="hierarchy-label">Field</div>
+                        <div class="hierarchy-value" id="field-category"></div>
+                        <div class="confidence" id="field-confidence"></div>
+                    </div>
+                    <div class="hierarchy-item">
+                        <div class="hierarchy-label">Specific Career</div>
+                        <div class="hierarchy-value" id="specific-category"></div>
+                        <div class="confidence" id="specific-confidence"></div>
+                    </div>
+                </div>
+
+                <div class="alternatives">
+                    <h3>Other Career Options</h3>
+                    <div id="alternatives-list"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Available hobbies
+        const hobbies = [
+            'programming', 'research', 'writing', 'music', 'photography',
+            'cooking', 'volunteering', 'gaming', 'robotics', 'reading',
+            'entrepreneurship', 'team_sports', 'individual_sports'
+        ];
+
+        // Personality questions with simple, relatable scenarios
+        const personalityQuestions = [
+            {
+                id: 'openness',
+                question: "When faced with a new situation or challenge, I usually:",
+                options: [
+                    { value: 2, text: "Feel excited and curious to explore it" },
+                    { value: 8, text: "Look for creative and unconventional solutions" },
+                    { value: 6, text: "Try to understand it from different perspectives" },
+                    { value: 4, text: "Prefer to stick with familiar approaches" }
+                ]
+            },
+            {
+                id: 'conscientiousness',
+                question: "When it comes to planning and organization, I:",
+                options: [
+                    { value: 9, text: "Always plan ahead and stick to schedules" },
+                    { value: 7, text: "Usually plan but can be flexible when needed" },
+                    { value: 4, text: "Prefer to go with the flow and adapt as needed" },
+                    { value: 2, text: "Work better under pressure and tight deadlines" }
+                ]
+            },
+            {
+                id: 'extraversion',
+                question: "At social gatherings or meetings, I typically:",
+                options: [
+                    { value: 9, text: "Enjoy meeting new people and being the center of attention" },
+                    { value: 7, text: "Like to participate actively in group discussions" },
+                    { value: 4, text: "Prefer smaller group conversations" },
+                    { value: 2, text: "Feel more comfortable listening and observing" }
+                ]
+            },
+            {
+                id: 'agreeableness',
+                question: "When working with others, I tend to:",
+                options: [
+                    { value: 9, text: "Always try to help and support team members" },
+                    { value: 7, text: "Focus on maintaining harmony and avoiding conflicts" },
+                    { value: 4, text: "Balance cooperation with speaking up for my ideas" },
+                    { value: 2, text: "Prioritize efficiency and results over feelings" }
+                ]
+            },
+            {
+                id: 'neuroticism',
+                question: "When dealing with stress or pressure, I:",
+                options: [
+                    { value: 2, text: "Stay calm and handle it without much worry" },
+                    { value: 4, text: "Feel some stress but manage it well" },
+                    { value: 7, text: "Often feel anxious and need time to cope" },
+                    { value: 9, text: "Get overwhelmed and find it hard to concentrate" }
+                ]
+            }
+        ];
+
+        // Initialize the form
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeHobbies();
+            initializePersonalityQuestions();
+            initializeForm();
+        });
+
+        function initializeHobbies() {
+            const container = document.getElementById('hobbies-container');
+            
+            hobbies.forEach(hobby => {
+                const hobbyDiv = document.createElement('div');
+                hobbyDiv.className = 'hobby-item';
+                hobbyDiv.innerHTML = `
+                    <div class="hobby-header">
+                        <input type="checkbox" class="hobby-checkbox" id="${hobby}-checkbox" 
+                               data-hobby="${hobby}" onchange="toggleHobby('${hobby}')">
+                        <label for="${hobby}-checkbox" class="hobby-name">${hobby.replace('_', ' ')}</label>
+                    </div>
+                    <div class="hobby-details" id="${hobby}-details">
+                        <div class="form-group">
+                            <label>Passion Level (1-10)</label>
+                            <div class="slider-container">
+                                <input type="range" class="slider" id="${hobby}-intensity" min="1" max="10" value="5">
+                                <div class="slider-value" id="${hobby}-intensity-value">5</div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Skill Level (1-10)</label>
+                            <div class="slider-container">
+                                <input type="range" class="slider" id="${hobby}-proficiency" min="1" max="10" value="5">
+                                <div class="slider-value" id="${hobby}-proficiency-value">5</div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Years of Experience</label>
+                            <input type="number" id="${hobby}-years" min="0" max="20" value="1">
+                        </div>
+                    </div>
+                `;
+                container.appendChild(hobbyDiv);
+
+                // Add slider listeners for this hobby
+                const intensitySlider = document.getElementById(`${hobby}-intensity`);
+                const proficiencySlider = document.getElementById(`${hobby}-proficiency`);
+                
+                intensitySlider.addEventListener('input', function() {
+                    document.getElementById(`${hobby}-intensity-value`).textContent = this.value;
+                });
+                
+                proficiencySlider.addEventListener('input', function() {
+                    document.getElementById(`${hobby}-proficiency-value`).textContent = this.value;
+                });
+            });
+        }
+
+        function toggleHobby(hobby) {
+            const checkbox = document.getElementById(`${hobby}-checkbox`);
+            const details = document.getElementById(`${hobby}-details`);
+            const item = checkbox.closest('.hobby-item');
+            
+            if (checkbox.checked) {
+                details.classList.add('show');
+                item.classList.add('selected');
+            } else {
+                details.classList.remove('show');
+                item.classList.remove('selected');
+            }
+        }
+
+        function initializePersonalityQuestions() {
+            const container = document.getElementById('personality-questions');
+            
+            personalityQuestions.forEach((question, index) => {
+                const questionDiv = document.createElement('div');
+                questionDiv.className = 'personality-question';
+                
+                let optionsHtml = '';
+                question.options.forEach((option, optionIndex) => {
+                    const optionId = `${question.id}-${optionIndex}`;
+                    optionsHtml += `
+                        <div class="option-item" onclick="selectOption('${question.id}', ${option.value}, this)">
+                            <input type="radio" name="${question.id}" value="${option.value}" 
+                                   id="${optionId}" class="option-radio">
+                            <span class="option-text">${option.text}</span>
+                        </div>
+                    `;
+                });
+                
+                questionDiv.innerHTML = `
+                    <div class="question-text">${question.question}</div>
+                    <div class="question-options">
+                        ${optionsHtml}
+                    </div>
+                `;
+                
+                container.appendChild(questionDiv);
+            });
+        }
+        
+        function selectOption(traitId, value, element) {
+            // Remove selection from siblings
+            const siblings = element.parentNode.querySelectorAll('.option-item');
+            siblings.forEach(sibling => {
+                sibling.classList.remove('selected');
+                sibling.querySelector('input').checked = false;
+            });
+            
+            // Select current option
+            element.classList.add('selected');
+            element.querySelector('input').checked = true;
+        }
+
+        function initializeForm() {
+            const form = document.getElementById('careerForm');
+            form.addEventListener('submit', handleFormSubmit);
+        }
+
+        async function handleFormSubmit(event) {
+            event.preventDefault();
+            
+            const submitBtn = document.getElementById('submit-btn');
+            const loading = document.getElementById('loading');
+            const error = document.getElementById('error');
+            const results = document.getElementById('results');
+            
+            // Hide previous results/errors
+            error.classList.remove('show');
+            results.classList.remove('show');
+            
+            // Show loading
+            loading.classList.add('show');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Analyzing...';
+            
+            try {
+                // Collect form data
+                const formData = collectFormData();
+                
+                // Send prediction request
+                const response = await fetch('/predict', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    displayResults(data);
+                } else {
+                    throw new Error(data.error || 'Prediction failed');
+                }
+                
+            } catch (err) {
+                console.error('Prediction error:', err);
+                error.textContent = err.message || 'An error occurred while predicting your career.';
+                error.classList.add('show');
+            } finally {
+                loading.classList.remove('show');
+                submitBtn.disabled = false;
+                submitBtn.textContent = '🔮 Predict My Career';
+            }
+        }
+
+        function collectFormData() {
+            // Academic grades
+            const academic = {
+                mathematics: document.getElementById('math-grade').value,
+                science: document.getElementById('science-grade').value,
+                english: document.getElementById('english-grade').value,
+                social_science: document.getElementById('social-grade').value,
+                second_language: document.getElementById('language-grade').value
+            };
+            
+            // Hobbies
+            const hobbiesData = {};
+            hobbies.forEach(hobby => {
+                const checkbox = document.getElementById(`${hobby}-checkbox`);
+                hobbiesData[hobby] = {
+                    selected: checkbox.checked,
+                    intensity: document.getElementById(`${hobby}-intensity`).value,
+                    proficiency: document.getElementById(`${hobby}-proficiency`).value,
+                    years: document.getElementById(`${hobby}-years`).value
+                };
+            });
+            
+            // Personality - collect from questionnaire radio buttons
+            const personality = {};
+            personalityQuestions.forEach(question => {
+                const selectedOption = document.querySelector(`input[name="${question.id}"]:checked`);
+                if (selectedOption) {
+                    personality[question.id] = parseInt(selectedOption.value);
+                } else {
+                    // Default to middle value if not selected
+                    personality[question.id] = 5;
+                }
+            });
+            
+            return {
+                academic: academic,
+                hobbies: hobbiesData,
+                personality: personality
+            };
+        }
+
+        function displayResults(data) {
+            // Primary result
+            document.getElementById('primary-career').textContent = data.primary_recommendation.career;
+            document.getElementById('primary-confidence').textContent = `Confidence: ${data.primary_recommendation.confidence}`;
+            
+            // Hierarchical results
+            document.getElementById('broad-category').textContent = data.hierarchical.broad.category;
+            document.getElementById('broad-confidence').textContent = data.hierarchical.broad.confidence;
+            
+            document.getElementById('field-category').textContent = data.hierarchical.field.category;
+            document.getElementById('field-confidence').textContent = data.hierarchical.field.confidence;
+            
+            document.getElementById('specific-category').textContent = data.hierarchical.specific.category;
+            document.getElementById('specific-confidence').textContent = data.hierarchical.specific.confidence;
+            
+            // Alternatives
+            const alternativesList = document.getElementById('alternatives-list');
+            alternativesList.innerHTML = '';
+            
+            data.alternatives.forEach(alt => {
+                const altDiv = document.createElement('div');
+                altDiv.className = 'alternative-item';
+                altDiv.innerHTML = `
+                    <span>${alt.career}</span>
+                    <span style="color: #666;">${alt.confidence}</span>
+                `;
+                alternativesList.appendChild(altDiv);
+            });
+            
+            // Show results
+            document.getElementById('results').classList.add('show');
+            
+            // Scroll to results
+            document.getElementById('results').scrollIntoView({ 
+                behavior: 'smooth' 
+            });
+        }
+    </script>
+</body>
+</html>
