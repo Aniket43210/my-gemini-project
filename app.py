@@ -32,16 +32,43 @@ models = None
 def load_models():
     """Load all trained models"""
     global models
+    
+    # Enhanced diagnostics
+    print(f"📍 Current working directory: {os.getcwd()}")
+    print(f"📂 Models directory exists: {os.path.exists('models')}")
+    
+    if os.path.exists('models'):
+        print(f"📋 Models directory contents: {os.listdir('models')}")
+    else:
+        print("❌ Models directory does not exist!")
+        return False
+    
+    # Check each model file individually
+    model_files = {
+        'broad_model': 'models/ultimate_broad_model.joblib',
+        'field_model': 'models/ultimate_field_model.joblib',
+        'career_model': 'models/ultimate_career_model.joblib',
+        'broad_encoder': 'models/broad_encoder.joblib',
+        'field_encoder': 'models/field_encoder.joblib',
+        'career_encoder': 'models/career_encoder.joblib'
+    }
+    
+    for name, path in model_files.items():
+        if os.path.exists(path):
+            size = os.path.getsize(path)
+            print(f"✓ {name}: {path} (size: {size} bytes)")
+        else:
+            print(f"❌ {name}: {path} - FILE NOT FOUND")
+            return False
+    
     try:
-        models = {
-            'broad_model': joblib.load('models/ultimate_broad_model.joblib'),
-            'field_model': joblib.load('models/ultimate_field_model.joblib'),
-            'career_model': joblib.load('models/ultimate_career_model.joblib'),
-            'broad_encoder': joblib.load('models/broad_encoder.joblib'),
-            'field_encoder': joblib.load('models/field_encoder.joblib'),
-            'career_encoder': joblib.load('models/career_encoder.joblib')
-        }
-        print("✓ Models loaded successfully")
+        models = {}
+        for name, path in model_files.items():
+            print(f"🔄 Loading {name}...")
+            models[name] = joblib.load(path)
+            print(f"✓ {name} loaded successfully")
+        
+        print("✅ All models loaded successfully")
         return True
     except FileNotFoundError as e:
         print(f"❌ Model files not found: {e}")
@@ -49,6 +76,8 @@ def load_models():
         return False
     except Exception as e:
         print(f"❌ Error loading models: {e}")
+        import traceback
+        traceback.print_exc()
         return False
 
 def convert_grade_to_float(grade_str):
@@ -156,6 +185,82 @@ def health():
         'status': 'healthy',
         'models_loaded': models is not None
     })
+
+@app.route('/debug')
+def debug():
+    """Debug endpoint to check environment and file paths"""
+    import os
+    from pathlib import Path
+    
+    debug_info = {
+        'environment': {
+            'current_working_directory': os.getcwd(),
+            'python_path': os.environ.get('PYTHONPATH', 'Not set'),
+            'port': os.environ.get('PORT', 'Not set'),
+            'home': os.environ.get('HOME', 'Not set'),
+            'dyno': os.environ.get('DYNO', 'Not set'),  # Heroku specific
+        },
+        'file_system': {
+            'models_directory_exists': os.path.exists('models'),
+            'current_directory_contents': os.listdir('.') if os.path.exists('.') else [],
+        },
+        'model_files': {},
+        'import_status': {}
+    }
+    
+    # Check if models directory exists and list contents
+    if os.path.exists('models'):
+        debug_info['file_system']['models_directory_contents'] = os.listdir('models')
+        
+        # Check each required model file
+        required_models = [
+            'ultimate_broad_model.joblib',
+            'ultimate_field_model.joblib', 
+            'ultimate_career_model.joblib',
+            'broad_encoder.joblib',
+            'field_encoder.joblib',
+            'career_encoder.joblib'
+        ]
+        
+        for model_file in required_models:
+            model_path = f'models/{model_file}'
+            debug_info['model_files'][model_file] = {
+                'exists': os.path.exists(model_path),
+                'size': os.path.getsize(model_path) if os.path.exists(model_path) else 0,
+                'full_path': os.path.abspath(model_path)
+            }
+    else:
+        debug_info['file_system']['models_directory_contents'] = 'Directory does not exist'
+    
+    # Check import status
+    try:
+        import joblib
+        debug_info['import_status']['joblib'] = 'OK'
+    except ImportError as e:
+        debug_info['import_status']['joblib'] = f'ERROR: {str(e)}'
+    
+    try:
+        from main import create_ultimate_predictor
+        debug_info['import_status']['main_module'] = 'OK'
+    except ImportError as e:
+        debug_info['import_status']['main_module'] = f'ERROR: {str(e)}'
+    
+    try:
+        import sys
+        debug_info['import_status']['sys_path'] = sys.path[:5]  # First 5 paths
+    except Exception as e:
+        debug_info['import_status']['sys_path'] = f'ERROR: {str(e)}'
+    
+    # Try to load models and capture any errors
+    try:
+        test_models = {
+            'broad_model': joblib.load('models/ultimate_broad_model.joblib'),
+        }
+        debug_info['model_loading'] = 'SUCCESS: At least one model loaded'
+    except Exception as e:
+        debug_info['model_loading'] = f'ERROR: {str(e)}'
+    
+    return jsonify(debug_info)
 
 if __name__ == '__main__':
     import os
