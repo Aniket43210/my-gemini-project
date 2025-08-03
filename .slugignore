@@ -1,8 +1,7 @@
 # Exclude unnecessary files from deployment
 *.md
 *.log
-*.txt
-!requirements*.txt
+
 !runtime.txt
 !Procfile
 data/*.json
