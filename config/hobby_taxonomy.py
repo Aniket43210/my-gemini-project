@@ -351,15 +351,25 @@ SKILL_CATEGORIES = {
 # Helper functions
 def get_career_field(career):
     """Get the field for a given career"""
-    return CAREER_HIERARCHY.get(career, {}).get('field', 'other')
+    if career not in CAREER_HIERARCHY:
+        raise KeyError(f"Career '{career}' not found in hierarchy")
+    return CAREER_HIERARCHY[career]['field']
 
 def get_career_broad_category(career):
     """Get the broad category for a given career"""
-    return CAREER_HIERARCHY.get(career, {}).get('broad_category', 'Other')
+    if career not in CAREER_HIERARCHY:
+        raise KeyError(f"Career '{career}' not found in hierarchy")
+    return CAREER_HIERARCHY[career]['broad_category']
 
 def get_hobby_relevance(hobby, career):
     """Get the relevance score of a hobby for a specific career"""
-    return HOBBY_TAXONOMY.get(hobby, {}).get('career_relevance', {}).get(career, 0.0)
+    if hobby not in HOBBY_TAXONOMY:
+        raise KeyError(f"Hobby '{hobby}' not found in taxonomy")
+        
+    if career not in HOBBY_TAXONOMY[hobby]['career_relevance']:
+        raise KeyError(f"Career '{career}' not found in hobby '{hobby}' relevance mapping")
+        
+    return HOBBY_TAXONOMY[hobby]['career_relevance'][career]
 
 def get_all_careers():
     """Get list of all available careers"""

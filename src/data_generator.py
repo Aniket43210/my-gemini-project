@@ -8,9 +8,47 @@ class SyntheticDataGenerator:
     """Generate synthetic training data for career prediction model"""
     
     def __init__(self, seed=42):
-        random.seed(seed)
-        np.random.seed(seed)
+        self.seed = seed
+        self.rng = np.random.RandomState(seed)
+        random.seed(seed)  # Keep this for any random.choice calls
         self.career_templates = self._create_career_templates()
+        
+    def _set_seed(self, seed):
+        """Set random seeds for reproducibility"""
+        self.rng = np.random.RandomState(seed)
+        random.seed(seed)  # Keep this for any random.choice calls
+        
+
+    
+    def generate_user_profile(self, career):
+        """Generate a synthetic user profile for a given career"""
+        template = self.career_templates.get(career, {})
+        if not template:
+            raise KeyError(f"No template found for career: {career}")
+        
+        # Generate grades within template ranges
+        academic_grades = {}
+        for subject, (min_val, max_val) in template['academic_preferences'].items():
+            # Ensure we respect the minimum value
+            value = max(min_val, round(self.rng.uniform(min_val, max_val), 2))
+            academic_grades[subject] = value
+            
+        # Generate personality traits
+        personality = {}
+        for trait, (min_val, max_val) in template['personality_preferences'].items():
+            # Ensure we respect the minimum value
+            value = max(min_val, round(self.rng.uniform(min_val, max_val), 2))
+            personality[trait] = value
+            
+        # Generate hobbies
+        hobbies = self._generate_hobbies_extended(template)
+        
+        return {
+            'academic_grades': academic_grades,
+            'personality': personality,
+            'hobbies': hobbies,
+            'career': career
+        }
     
     def _create_career_templates(self):
         """Create templates for different career types with expected patterns"""
@@ -288,38 +326,15 @@ class SyntheticDataGenerator:
         }
         return templates
     
-    def generate_user_profile(self, career):
-        """Generate a single user profile for a specific career"""
-        if career not in self.career_templates:
-            raise ValueError(f"Career '{career}' not found in templates")
-        
-        template = self.career_templates[career]
-        
-        # Generate academic grades with some noise
-        academic_grades = {}
-        for subject, (min_val, max_val) in template['academic_preferences'].items():
-            # Add random noise but keep within bounds
-            base_score = np.random.uniform(min_val, max_val)
-            noise = np.random.normal(0, 0.05)  # Small noise
-            final_score = np.clip(base_score + noise, 0.1, 1.0)
-            academic_grades[subject] = round(final_score, 2)
-        
-        # Generate personality scores
-        personality_scores = {}
-        for trait, (min_val, max_val) in template['personality_preferences'].items():
-            base_score = np.random.uniform(min_val, max_val)
-            noise = np.random.normal(0, 0.05)
-            final_score = np.clip(base_score + noise, 0.1, 1.0)
-            personality_scores[trait] = round(final_score, 2)
-        
-        # Generate hobbies with detailed attributes
+    def _generate_hobbies_extended(self, template):
+        """Generate hobbies with detailed attributes"""
         user_hobbies = {}
         hobby_prefs = template['hobby_preferences']
         hobby_weights = template['hobby_weights']
         
         # Select 2-4 hobbies for this user
-        num_hobbies = np.random.randint(2, 5)
-        selected_hobbies = np.random.choice(
+        num_hobbies = self.rng.randint(2, 5)
+        selected_hobbies = self.rng.choice(
             hobby_prefs, 
             size=min(num_hobbies, len(hobby_prefs)), 
             replace=False,
@@ -328,12 +343,12 @@ class SyntheticDataGenerator:
         
         for hobby in selected_hobbies:
             base_intensity = hobby_weights[hobby_prefs.index(hobby)]
-            intensity_noise = np.random.normal(0, 0.1)
+            intensity_noise = self.rng.normal(0, 0.1)
             intensity = np.clip(base_intensity + intensity_noise, 0.2, 1.0)
             
             # Generate proficiency and years with some correlation to intensity
-            proficiency = np.clip(intensity + np.random.normal(0, 0.15), 0.2, 1.0)
-            years = max(1, int(np.random.exponential(3) + 1))
+            proficiency = np.clip(intensity + self.rng.normal(0, 0.15), 0.2, 1.0)
+            years = max(1, int(self.rng.exponential(3) + 1))
             
             user_hobbies[hobby] = {
                 'intensity': round(intensity, 2),
@@ -342,21 +357,16 @@ class SyntheticDataGenerator:
             }
         
         # Sometimes add a random hobby for diversity
-        if np.random.random() < 0.3:
+        if self.rng.random() < 0.3:
             all_hobbies = list(HOBBY_TAXONOMY.keys())
-            random_hobby = np.random.choice([h for h in all_hobbies if h not in user_hobbies])
+            random_hobby = self.rng.choice([h for h in all_hobbies if h not in user_hobbies])
             user_hobbies[random_hobby] = {
-                'intensity': round(np.random.uniform(0.2, 0.6), 2),
-                'proficiency': round(np.random.uniform(0.2, 0.6), 2),
-                'years': np.random.randint(1, 4)
+                'intensity': round(self.rng.uniform(0.2, 0.6), 2),
+                'proficiency': round(self.rng.uniform(0.2, 0.6), 2),
+                'years': self.rng.randint(1, 4)
             }
         
-        return {
-            'academic_grades': academic_grades,
-            'hobbies': user_hobbies,
-            'personality': personality_scores,
-            'career': career
-        }
+        return user_hobbies
     
     def generate_dataset(self, samples_per_career=100):
         """Generate a complete synthetic dataset"""
@@ -367,6 +377,10 @@ class SyntheticDataGenerator:
         
         for career in careers:
             print(f"Generating data for {career}...")
+            # Create a unique seed for each career by combining original seed with career index
+            career_seed = self.seed + careers.index(career)
+            self._set_seed(career_seed)
+            
             for _ in range(samples_per_career):
                 try:
                     user_profile = self.generate_user_profile(career)
@@ -375,6 +389,8 @@ class SyntheticDataGenerator:
                     print(f"Error generating profile for {career}: {e}")
                     continue
         
+        # Reset to original seed
+        self._set_seed(self.seed)
         print(f"Generated {len(dataset)} total samples")
         return dataset
     
