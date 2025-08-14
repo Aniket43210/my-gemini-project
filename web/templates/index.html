@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Career Path Predictor</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+</head>
+<body>
+    <div class="loader" id="loader">
+        <div class="loader-content">
+            <div class="circle"></div>
+            <div class="text">Loading</div>
+        </div>
+    </div>
+
+    <nav class="nav-wrapper">
+        <div class="nav-content">
+            <div class="logo">Career<span>Path</span></div>
+            <ul class="nav-items">
+                <li><a href="#home">Home</a></li>
+                <li><a href="#predict">Predict</a></li>
+                <li><a href="#about">About</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <section id="home" class="hero">
+        <div id="bg-animation"></div>
+        <div class="hero-content">
+            <h1 class="title">Discover Your Ideal Career Path</h1>
+            <p class="subtitle">Using advanced AI and machine learning to predict your perfect career match</p>
+            <button class="cta-button" onclick="scrollToPredict()">Get Started</button>
+        </div>
+    </section>
+
+    <section id="predict" class="prediction-section">
+        <h2>Career Prediction</h2>
+        <div class="form-container">
+            <form id="predictionForm" onsubmit="submitPrediction(event)">
+                <div class="form-group academic-grades">
+                    <h3>Academic Grades</h3>
+                    <div class="grades-grid">
+                        <div class="grade-input">
+                            <label for="mathematics">Mathematics</label>
+                            <input type="range" id="mathematics" name="mathematics" min="0" max="100" value="75">
+                            <span class="grade-value">75%</span>
+                        </div>
+                        <div class="grade-input">
+                            <label for="science">Science</label>
+                            <input type="range" id="science" name="science" min="0" max="100" value="75">
+                            <span class="grade-value">75%</span>
+                        </div>
+                        <div class="grade-input">
+                            <label for="english">English</label>
+                            <input type="range" id="english" name="english" min="0" max="100" value="75">
+                            <span class="grade-value">75%</span>
+                        </div>
+                        <div class="grade-input">
+                            <label for="social_science">Social Science</label>
+                            <input type="range" id="social_science" name="social_science" min="0" max="100" value="75">
+                            <span class="grade-value">75%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group personality">
+                    <h3>Personality Traits</h3>
+                    <div class="personality-grid">
+                        <div class="trait-input">
+                            <label for="openness">Openness</label>
+                            <input type="range" id="openness" name="openness" min="0" max="100" value="50">
+                            <span class="trait-value">50%</span>
+                        </div>
+                        <div class="trait-input">
+                            <label for="conscientiousness">Conscientiousness</label>
+                            <input type="range" id="conscientiousness" name="conscientiousness" min="0" max="100" value="50">
+                            <span class="trait-value">50%</span>
+                        </div>
+                        <div class="trait-input">
+                            <label for="extraversion">Extraversion</label>
+                            <input type="range" id="extraversion" name="extraversion" min="0" max="100" value="50">
+                            <span class="trait-value">50%</span>
+                        </div>
+                        <div class="trait-input">
+                            <label for="agreeableness">Agreeableness</label>
+                            <input type="range" id="agreeableness" name="agreeableness" min="0" max="100" value="50">
+                            <span class="trait-value">50%</span>
+                        </div>
+                        <div class="trait-input">
+                            <label for="neuroticism">Neuroticism</label>
+                            <input type="range" id="neuroticism" name="neuroticism" min="0" max="100" value="50">
+                            <span class="trait-value">50%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group hobbies">
+                    <h3>Hobbies & Interests</h3>
+                    <div class="hobbies-container" id="hobbiesContainer">
+                        <!-- Hobby items will be dynamically added here -->
+                    </div>
+                    <button type="button" class="add-hobby-btn" onclick="addHobby()">Add Hobby</button>
+                </div>
+
+                <button type="submit" class="submit-btn">Predict My Career</button>
+            </form>
+        </div>
+
+        <div class="results-container" id="resultsContainer" style="display: none;">
+            <h3>Your Career Prediction</h3>
+            <div class="primary-prediction">
+                <div class="prediction-card">
+                    <h4>Best Match</h4>
+                    <div class="career-name" id="primaryCareer"></div>
+                    <div class="confidence" id="primaryConfidence"></div>
+                </div>
+            </div>
+            <div class="alternative-predictions">
+                <h4>Alternative Careers</h4>
+                <div class="alternatives-grid" id="alternativeCareers">
+                    <!-- Alternative careers will be dynamically added here -->
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="about" class="about-section">
+        <h2>About the Project</h2>
+        <div class="about-content">
+            <div class="tech-stack">
+                <h3>Technology Stack</h3>
+                <ul>
+                    <li>Machine Learning: Python, scikit-learn</li>
+                    <li>Feature Engineering: 51 advanced features</li>
+                    <li>Model Accuracy: 96.8%</li>
+                    <li>Hierarchical Prediction System</li>
+                </ul>
+            </div>
+            <div class="methodology">
+                <h3>Our Methodology</h3>
+                <p>Using advanced machine learning algorithms and comprehensive data analysis, we evaluate your academic performance, personality traits, and interests to predict the most suitable career paths.</p>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="footer-content">
+            <div class="copyright">© 2025 Career Path Predictor</div>
+            <div class="footer-links">
+                <a href="#privacy">Privacy Policy</a>
+                <a href="#terms">Terms of Use</a>
+                <a href="#contact">Contact</a>
+            </div>
+        </div>
+    </footer>
+
+    <script src="{{ url_for('static', filename='js/animations.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/background.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/form.js') }}"></script>
+</body>
+</html>
