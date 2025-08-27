@@ -3,7 +3,7 @@ Ultimate Career Prediction Model - Complete Hierarchical Training Script
 ========================================================================
 
 This script combines the best features from all training scripts:
-- Hierarchical prediction (Broad → Field → Specific Career)
+- Hierarchical prediction (Broad -> Field -> Specific Career)
 - Advanced feature engineering (40+ features)
 - Ensemble methods with XGBoost compatibility fixes
 - SMOTE for class imbalance handling
@@ -31,6 +31,9 @@ import time
 from datetime import datetime
 warnings.filterwarnings('ignore')
 
+from src.ensemble_models import _ProbaStandardizer
+from src.enhanced_hyperparameter_tuning import AdvancedHyperparameterTuner
+
 # Machine learning imports
 from sklearn.model_selection import train_test_split, cross_val_score
 from sklearn.ensemble import RandomForestClassifier, VotingClassifier
@@ -48,11 +51,11 @@ from src.data_generator import SyntheticDataGenerator
 from src.data_augmentation_enhancer import DataAugmentationEnhancer
 
 def create_directories():
-    """Create necessary directories for the project"""
+    """Create necessary directories for the project""" 
     directories = ['data', 'models', 'results', 'logs']
     for directory in directories:
         Path(directory).mkdir(exist_ok=True)
-    print("✓ Project directories created")
+    print(" Project directories created")
 
 def safe_float(value, default=0.5):
     """Safely convert value to float with fallback"""
@@ -78,7 +81,7 @@ def load_and_prepare_data():
         print(f"Loading existing data from {data_file}")
         with open(data_file, 'r') as f:
             dataset = json.load(f)
-        print(f"✓ Loaded {len(dataset)} samples")
+        print(f" Loaded {len(dataset)} samples")
     else:
         print("No existing data found, generating new enhanced dataset...")
         dataset = generate_enhanced_data()
@@ -114,9 +117,9 @@ def generate_enhanced_data(samples_per_career=150):
     
     generator.save_dataset(enhanced_dataset, "data/synthetic_career_data.json")
     
-    print(f"✓ Generated {len(base_dataset)} base samples")
-    print(f"✓ Generated {len(augmented_dataset)} augmented samples")
-    print(f"✓ Total enhanced dataset: {len(enhanced_dataset)} samples")
+    print(f" Generated {len(base_dataset)} base samples")
+    print(f" Generated {len(augmented_dataset)} augmented samples")
+    print(f" Total enhanced dataset: {len(enhanced_dataset)} samples")
     
     return enhanced_dataset
 
@@ -169,15 +172,15 @@ def clean_and_validate_data(dataset):
             skipped_count += 1
             continue
     
-    print(f"✓ Cleaned dataset: {len(cleaned_dataset)} samples")
-    print(f"✓ Skipped {skipped_count} invalid samples")
+    print(f" Cleaned dataset: {len(cleaned_dataset)} samples")
+    print(f" Skipped {skipped_count} invalid samples")
     
     return cleaned_dataset
 
 def analyze_data_distribution(dataset):
     """Analyze and display data distribution"""
     career_counts = Counter([sample['career'] for sample in dataset])
-    print(f"✓ Data distribution across {len(career_counts)} careers:")
+    print(f" Data distribution across {len(career_counts)} careers:")
     for career, count in sorted(career_counts.items()):
         print(f"   {career}: {count} samples")
 
@@ -339,7 +342,7 @@ def create_ultimate_features(dataset):
             
             social_hobbies = (feature_dict['has_volunteering'] + feature_dict['has_sports']) / 2
             feature_dict['social_orientation'] = (
-                social_hobbies * 0.5 +
+                social_hobbies * 0.5 + 
                 feature_dict['people_orientation'] * 0.5
             )
             
@@ -374,9 +377,9 @@ def create_ultimate_features(dataset):
     X = pd.DataFrame(features)
     X = X.fillna(0).replace([np.inf, -np.inf], 0)
     
-    print(f"✓ Ultimate feature matrix shape: {X.shape}")
-    print(f"✓ Total features created: {X.shape[1]}")
-    print(f"✓ Successfully processed {processed_count} samples")
+    print(f" Ultimate feature matrix shape: {X.shape}")
+    print(f" Total features created: {X.shape[1]}")
+    print(f" Successfully processed {processed_count} samples")
     
     return X, career_labels
 
@@ -386,47 +389,59 @@ def create_hierarchical_labels(career_labels):
     
     # Broad category mapping (6 categories)
     career_to_broad = {
-        'software_engineer': 'STEM',
-        'data_scientist': 'STEM',
-        'web_developer': 'STEM', 
-        'mechanical_engineer': 'STEM',
-        'financial_analyst': 'Business',
-        'marketing_manager': 'Business',
-        'accountant': 'Business',
-        'graphic_designer': 'Creative',
-        'ux_designer': 'Creative',
-        'chef': 'Creative',
-        'teacher': 'Social',
-        'psychologist': 'Healthcare',
-        'doctor': 'Healthcare',
-        'nurse': 'Healthcare',
-        'lawyer': 'Law_Government'
+        'AI Engineer': 'STEM',
+        'Art Director': 'Creative',
+        'Biomedical Engineer': 'STEM',
+        'Business Analyst': 'Business',
+        'Clinical Researcher': 'Healthcare',
+        'Content Creator': 'Creative',
+        'Data Scientist': 'STEM',
+        'DevOps Engineer': 'STEM',
+        'Financial Analyst': 'Business',
+        'Game Designer': 'Creative',
+        'Health Informatics Specialist': 'Healthcare',
+        'Healthcare Analyst': 'Healthcare',
+        'Marketing Manager': 'Business',
+        'Medical Technologist': 'Healthcare',
+        'Product Manager': 'Business',
+        'Research Scientist': 'STEM',
+        'Software Engineer': 'STEM',
+        'Strategy Consultant': 'Business',
+        'Systems Architect': 'STEM',
+        'UX Designer': 'Creative',
+        'Visual Designer': 'Creative'
     }
     
     # Field mapping (11+ fields)
     career_to_field = {
-        'software_engineer': 'engineering',
-        'data_scientist': 'data_science', 
-        'web_developer': 'engineering',
-        'mechanical_engineer': 'engineering',
-        'financial_analyst': 'finance',
-        'marketing_manager': 'marketing',
-        'accountant': 'finance',
-        'graphic_designer': 'design',
-        'ux_designer': 'design',
-        'chef': 'culinary',
-        'teacher': 'education',
-        'psychologist': 'psychology',
-        'doctor': 'medicine',
-        'nurse': 'healthcare',
-        'lawyer': 'legal'
+        'AI Engineer': 'Software Engineering',
+        'Art Director': 'Design/Art',
+        'Biomedical Engineer': 'Engineering',
+        'Business Analyst': 'Business/Finance',
+        'Clinical Researcher': 'Research/Science',
+        'Content Creator': 'Design/Art', 
+        'Data Scientist': 'Data Science/Analytics',
+        'DevOps Engineer': 'IT/Systems',
+        'Financial Analyst': 'Business/Finance',
+        'Game Designer': 'Design/Art',
+        'Health Informatics Specialist': 'Healthcare/Medical',
+        'Healthcare Analyst': 'Healthcare/Medical',
+        'Marketing Manager': 'Marketing/Sales',
+        'Medical Technologist': 'Healthcare/Medical',
+        'Product Manager': 'Business/Finance', 
+        'Research Scientist': 'Research/Science',
+        'Software Engineer': 'Software Engineering',
+        'Strategy Consultant': 'Business/Finance', 
+        'Systems Architect': 'IT/Systems',
+        'UX Designer': 'Design/Art',
+        'Visual Designer': 'Design/Art'
     }
     
     broad_labels = [career_to_broad.get(career, 'Other') for career in career_labels]
     field_labels = [career_to_field.get(career, 'other') for career in career_labels]
     
-    print(f"✓ Hierarchical structure created:")
-    print(f"   {len(set(career_labels))} careers → {len(set(field_labels))} fields → {len(set(broad_labels))} broad categories")
+    print(f" Hierarchical structure created:")
+    print(f"   {len(set(career_labels))} careers -> {len(set(field_labels))} fields -> {len(set(broad_labels))} broad categories")
     print(f"   Broad categories: {sorted(set(broad_labels))}")
     print(f"   Fields: {sorted(set(field_labels))}")
     
@@ -447,6 +462,8 @@ def train_hierarchical_models(X, career_labels, broad_labels, field_labels):
     field_encoded = field_encoder.fit_transform(field_labels)
     career_encoded = career_encoder.fit_transform(career_labels)
     
+    tuner = AdvancedHyperparameterTuner()
+    
     results = {}
     
     # === TRAIN BROAD CATEGORY MODEL ===
@@ -462,16 +479,18 @@ def train_hierarchical_models(X, career_labels, broad_labels, field_labels):
     try:
         smote_broad = SMOTE(random_state=42, k_neighbors=min(5, min(Counter(y_broad_train).values())-1))
         X_broad_balanced, y_broad_balanced = smote_broad.fit_resample(X_broad_train, y_broad_train)
-        print(f"Broad data: {len(X_broad_train)} → {len(X_broad_balanced)} after SMOTE")
+        print(f"Broad data: {len(X_broad_train)} -> {len(X_broad_balanced)} after SMOTE")
     except:
         X_broad_balanced, y_broad_balanced = X_broad_train, y_broad_train
         print("Using original broad data without SMOTE")
     
     # Create broad category ensemble
+    print("\nOptimizing Broad Category XGBoost Hyperparameters...")
+    broad_xgb_params = tuner.enhanced_optimize_hyperparameters(
+        X_broad_balanced, y_broad_balanced, model_type='broad', n_trials=20
+    )
     xgb_broad = xgb.XGBClassifier(
-        n_estimators=100,
-        max_depth=5,
-        learning_rate=0.1,
+        **broad_xgb_params,
         random_state=42,
         eval_metric='mlogloss'
     )
@@ -479,7 +498,10 @@ def train_hierarchical_models(X, career_labels, broad_labels, field_labels):
     rf_broad = RandomForestClassifier(n_estimators=100, max_depth=5, random_state=42)
     
     broad_ensemble = VotingClassifier(
-        estimators=[('xgb', xgb_broad), ('rf', rf_broad)],
+        estimators=[
+            ('xgb', _ProbaStandardizer(xgb_broad, len(broad_encoder.classes_))),
+            ('rf', _ProbaStandardizer(rf_broad, len(broad_encoder.classes_)))
+        ],
         voting='soft'
     )
     
@@ -488,7 +510,8 @@ def train_hierarchical_models(X, career_labels, broad_labels, field_labels):
     broad_pred = broad_ensemble.predict(X_broad_test)
     broad_accuracy = accuracy_score(y_broad_test, broad_pred)
     
-    print(f"✓ Broad Category Model Accuracy: {broad_accuracy:.3f}")
+    print(f" Broad Category Model Accuracy: {broad_accuracy:.3f}")
+    print(f"Number of broad classes: {len(broad_encoder.classes_)}")
     results['broad_accuracy'] = broad_accuracy
     results['broad_model'] = broad_ensemble
     results['broad_encoder'] = broad_encoder
@@ -506,16 +529,18 @@ def train_hierarchical_models(X, career_labels, broad_labels, field_labels):
     try:
         smote_field = SMOTE(random_state=42, k_neighbors=min(5, min(Counter(y_field_train).values())-1))
         X_field_balanced, y_field_balanced = smote_field.fit_resample(X_field_train, y_field_train)
-        print(f"Field data: {len(X_field_train)} → {len(X_field_balanced)} after SMOTE")
+        print(f"Field data: {len(X_field_train)} -> {len(X_field_balanced)} after SMOTE")
     except:
         X_field_balanced, y_field_balanced = X_field_train, y_field_train
         print("Using original field data without SMOTE")
     
     # Create field ensemble
+    print("\nOptimizing Field Model XGBoost Hyperparameters...")
+    field_xgb_params = tuner.enhanced_optimize_hyperparameters(
+        X_field_balanced, y_field_balanced, model_type='field', n_trials=20
+    )
     xgb_field = xgb.XGBClassifier(
-        n_estimators=120,
-        max_depth=6,
-        learning_rate=0.1,
+        **field_xgb_params,
         random_state=42,
         eval_metric='mlogloss'
     )
@@ -523,7 +548,10 @@ def train_hierarchical_models(X, career_labels, broad_labels, field_labels):
     rf_field = RandomForestClassifier(n_estimators=120, max_depth=6, random_state=42)
     
     field_ensemble = VotingClassifier(
-        estimators=[('xgb', xgb_field), ('rf', rf_field)],
+        estimators=[
+            ('xgb', _ProbaStandardizer(xgb_field, len(field_encoder.classes_))),
+            ('rf', _ProbaStandardizer(rf_field, len(field_encoder.classes_)))
+        ],
         voting='soft'
     )
     
@@ -532,7 +560,8 @@ def train_hierarchical_models(X, career_labels, broad_labels, field_labels):
     field_pred = field_ensemble.predict(X_field_test)
     field_accuracy = accuracy_score(y_field_test, field_pred)
     
-    print(f"✓ Field Model Accuracy: {field_accuracy:.3f}")
+    print(f" Field Model Accuracy: {field_accuracy:.3f}")
+    print(f"Number of field classes: {len(field_encoder.classes_)}")
     results['field_accuracy'] = field_accuracy
     results['field_model'] = field_ensemble
     results['field_encoder'] = field_encoder
@@ -547,19 +576,25 @@ def train_hierarchical_models(X, career_labels, broad_labels, field_labels):
     )
     
     # Apply SMOTE for career model
+    # Ensure k_neighbors is at least 1 for SMOTE to work
+    min_samples_in_minority_class = min(Counter(y_career_train).values())
+    n_neighbors = max(1, min_samples_in_minority_class - 1) # k_neighbors must be < number of samples in minority class
+    
     try:
-        smote_career = SMOTE(random_state=42, k_neighbors=min(3, min(Counter(y_career_train).values())-1))
+        smote_career = SMOTE(random_state=42, k_neighbors=n_neighbors)
         X_career_balanced, y_career_balanced = smote_career.fit_resample(X_career_train, y_career_train)
-        print(f"Career data: {len(X_career_train)} → {len(X_career_balanced)} after SMOTE")
-    except:
+        print(f"Career data: {len(X_career_train)} -> {len(X_career_balanced)} after SMOTE (k_neighbors={n_neighbors})")
+    except Exception as e:
         X_career_balanced, y_career_balanced = X_career_train, y_career_train
-        print("Using original career data without SMOTE")
+        print(f"Using original career data without SMOTE due to error: {e}")
     
     # Create career ensemble
+    print("\nOptimizing Specific Career Model XGBoost Hyperparameters...")
+    career_xgb_params = tuner.enhanced_optimize_hyperparameters(
+        X_career_balanced, y_career_balanced, model_type='specific', n_trials=20
+    )
     xgb_career = xgb.XGBClassifier(
-        n_estimators=150,
-        max_depth=8,
-        learning_rate=0.1,
+        **career_xgb_params,
         random_state=42,
         eval_metric='mlogloss'
     )
@@ -567,7 +602,10 @@ def train_hierarchical_models(X, career_labels, broad_labels, field_labels):
     rf_career = RandomForestClassifier(n_estimators=150, max_depth=8, random_state=42)
     
     career_ensemble = VotingClassifier(
-        estimators=[('xgb', xgb_career), ('rf', rf_career)],
+        estimators=[
+            ('xgb', _ProbaStandardizer(xgb_career, len(career_encoder.classes_))),
+            ('rf', _ProbaStandardizer(rf_career, len(career_encoder.classes_)))
+        ],
         voting='soft'
     )
     
@@ -576,7 +614,8 @@ def train_hierarchical_models(X, career_labels, broad_labels, field_labels):
     career_pred = career_ensemble.predict(X_career_test)
     career_accuracy = accuracy_score(y_career_test, career_pred)
     
-    print(f"✓ Specific Career Model Accuracy: {career_accuracy:.3f}")
+    print(f" Specific Career Model Accuracy: {career_accuracy:.3f}")
+    print(f"Number of career classes: {len(career_encoder.classes_)}")
     results['career_accuracy'] = career_accuracy
     results['career_model'] = career_ensemble
     results['career_encoder'] = career_encoder
@@ -590,7 +629,7 @@ def train_hierarchical_models(X, career_labels, broad_labels, field_labels):
     joblib.dump(results['field_encoder'], f"{model_dir}/field_encoder.joblib")
     joblib.dump(results['career_encoder'], f"{model_dir}/career_encoder.joblib")
     
-    print(f"\n✓ All models saved to {model_dir}/")
+    print(f"\n All models saved to {model_dir}/")
     
     # Print detailed classification reports
     print_detailed_reports(results, X_broad_test, y_broad_test, broad_pred, 
@@ -659,14 +698,14 @@ def analyze_feature_importance(results, X):
     print(f"\n{'='*50}")
     print("TOP 10 FIELD MODEL FEATURES")
     print('='*50)
-    for i, (_, row) in enumerate(field_importance.head(10).iterrows(), 1):
-        print(f"{i:2d}. {row['feature']:25s}: {row['importance']:.4f}")
+    for i, alt in enumerate(field_importance.head(10).iterrows(), 1):
+        print(f"{i:2d}. {alt['feature']:25s}: {alt['importance']:.4f}")
     
     print(f"\n{'='*50}")
     print("TOP 10 CAREER MODEL FEATURES")
     print('='*50)
-    for i, (_, row) in enumerate(career_importance.head(10).iterrows(), 1):
-        print(f"{i:2d}. {row['feature']:25s}: {row['importance']:.4f}")
+    for i, alt in enumerate(career_importance.head(10).iterrows(), 1):
+        print(f"{i:2d}. {alt['feature']:25s}: {alt['importance']:.4f}")
     
     # Save feature importance
     broad_importance.to_csv("results/ultimate_broad_importance.csv", index=False)
@@ -830,34 +869,34 @@ def demonstrate_ultimate_predictions(predictor):
         
         # Primary recommendation
         primary = result['primary_recommendation']
-        print(f"🎯 PRIMARY RECOMMENDATION: {primary['career']}")
+        print(f" PRIMARY RECOMMENDATION: {primary['career']}")
         print(f"   Overall Confidence: {primary['confidence']:.1%}")
         
         # Hierarchical breakdown
-        print(f"\n📊 COMPLETE HIERARCHICAL BREAKDOWN:")
+        print(f"\n COMPLETE HIERARCHICAL BREAKDOWN:")
         hierarchical = result['hierarchical_predictions']
-        print(f"   🌐 Broad Category: {hierarchical['broad']['category']} ({hierarchical['broad']['confidence']:.1%})")
-        print(f"   🏢 Field Level: {hierarchical['field']['category']} ({hierarchical['field']['confidence']:.1%})")
-        print(f"   🎯 Specific Career: {hierarchical['specific']['category']} ({hierarchical['specific']['confidence']:.1%})")
+        print(f"    Broad Category: {hierarchical['broad']['category']} ({hierarchical['broad']['confidence']:.1%})")
+        print(f"    Field Level: {hierarchical['field']['category']} ({hierarchical['field']['confidence']:.1%})")
+        print(f"    Specific Career: {hierarchical['specific']['category']} ({hierarchical['specific']['confidence']:.1%})")
         
         # Top alternatives
         alternatives = result['top_alternatives']
         
-        print(f"\n🔍 TOP BROAD CATEGORY ALTERNATIVES:")
+        print(f"\n TOP BROAD CATEGORY ALTERNATIVES:")
         for i, alt in enumerate(alternatives['broad_categories'][:3], 1):
             print(f"   {i}. {alt['category']} ({alt['confidence']:.1%})")
         
-        print(f"\n🔍 TOP FIELD ALTERNATIVES:")
+        print(f"\n TOP FIELD ALTERNATIVES:")
         for i, alt in enumerate(alternatives['fields'][:3], 1):
             print(f"   {i}. {alt['category']} ({alt['confidence']:.1%})")
         
-        print(f"\n🔍 TOP CAREER ALTERNATIVES:")
+        print(f"\n TOP CAREER ALTERNATIVES:")
         for i, alt in enumerate(alternatives['careers'][:3], 1):
             print(f"   {i}. {alt['career']} ({alt['confidence']:.1%})")
         
-        print(f"\n💡 ULTIMATE REASONING:")
+        print(f"\n ULTIMATE REASONING:")
         for reason in result['recommendation_reasoning']:
-            print(f"   • {reason}")
+            print(f"   - {reason}")
 
 def save_ultimate_results(results, broad_importance, field_importance, career_importance, X):
     """Save comprehensive ultimate results"""
@@ -872,7 +911,7 @@ def save_ultimate_results(results, broad_importance, field_importance, career_im
         "model_info": {
             "training_timestamp": timestamp,
             "model_type": "Ultimate Hierarchical Career Prediction",
-            "architecture": "3-Level Hierarchy (Broad → Field → Specific)",
+            "architecture": "3-Level Hierarchy (Broad -> Field -> Specific)",
             "ensemble_method": "XGBoost + RandomForest with Soft Voting",
             "features_count": int(X.shape[1]),
             "samples_count": int(len(X))
@@ -923,16 +962,16 @@ def save_ultimate_results(results, broad_importance, field_importance, career_im
             ]
         },
         "improvements_applied": [
-            "✓ Complete 3-level hierarchical prediction",
-            "✓ 50+ engineered features with advanced combinations",
-            "✓ SMOTE for class imbalance handling at all levels",
-            "✓ Ensemble methods (XGBoost + RandomForest)",
-            "✓ Soft voting for robust predictions",
-            "✓ Comprehensive feature importance analysis",
-            "✓ Enhanced data cleaning and validation",
-            "✓ XGBoost compatibility fixes",
-            "✓ Advanced personality-derived features",
-            "✓ Specialization and orientation indices"
+            " Complete 3-level hierarchical prediction",
+            " 50+ engineered features with advanced combinations",
+            " SMOTE for class imbalance handling at all levels",
+            " Ensemble methods (XGBoost + RandomForest)",
+            " Soft voting for robust predictions",
+            " Comprehensive feature importance analysis",
+            " Enhanced data cleaning and validation",
+            " XGBoost compatibility fixes",
+            " Advanced personality-derived features",
+            " Specialization and orientation indices"
         ]
     }
     
@@ -940,18 +979,18 @@ def save_ultimate_results(results, broad_importance, field_importance, career_im
     with open(f"results/ultimate_model_results_{timestamp}.json", 'w') as f:
         json.dump(ultimate_summary, f, indent=2)
     
-    print("✓ Ultimate results saved to:")
-    print(f"  • results/ultimate_model_results_{timestamp}.json")
-    print(f"  • results/ultimate_broad_importance.csv")
-    print(f"  • results/ultimate_field_importance.csv")
-    print(f"  • results/ultimate_career_importance.csv")
-    print(f"  • models/ (6 model files)")
+    print(" Ultimate results saved to:")
+    print(f"  - results/ultimate_model_results_{timestamp}.json")
+    print(f"  - results/ultimate_broad_importance.csv")
+    print(f"  - results/ultimate_field_importance.csv")
+    print(f"  - results/ultimate_career_importance.csv")
+    print(f"  - models/ (6 model files)")
 
 def main():
     """Ultimate main execution function"""
     start_time = time.time()
     
-    print("🚀 ULTIMATE CAREER PREDICTION MODEL")
+    print("ULTIMATE CAREER PREDICTION MODEL")
     print("AI-Powered Hierarchical Career Recommendation System")
     print("Combining All Advanced Features with Complete Hierarchy")
     print("="*80)
@@ -986,33 +1025,33 @@ def main():
     training_time = end_time - start_time
     
     print(f"\n{'='*80}")
-    print("🎉 ULTIMATE TRAINING COMPLETE!")
+    print(" ULTIMATE TRAINING COMPLETE!")
     print('='*80)
-    print("✓ Complete hierarchical models trained and saved")
-    print("✓ Comprehensive feature analysis completed")
-    print("✓ Ultimate predictions demonstrated")
-    print("✓ All results saved with timestamp")
-    print("✓ Ready for production deployment")
+    print(" Complete hierarchical models trained and saved")
+    print(" Comprehensive feature analysis completed")
+    print(" Ultimate predictions demonstrated")
+    print(" All results saved with timestamp")
+    print(" Ready for production deployment")
     
-    print(f"\n📊 ULTIMATE PERFORMANCE SUMMARY:")
-    print(f"• Broad Category Model Accuracy: {results['broad_accuracy']:.1%}")
-    print(f"• Field Model Accuracy: {results['field_accuracy']:.1%}")
-    print(f"• Specific Career Model Accuracy: {results['career_accuracy']:.1%}")
-    print(f"• Average Hierarchical Accuracy: {np.mean([results['broad_accuracy'], results['field_accuracy'], results['career_accuracy']]):.1%}")
-    print(f"• Total Features Engineered: {X.shape[1]}")
-    print(f"• Training Time: {training_time:.1f} seconds")
+    print(f"\n ULTIMATE PERFORMANCE SUMMARY:")
+    print(f"- Broad Category Model Accuracy: {results['broad_accuracy']:.1%}")
+    print(f"- Field Model Accuracy: {results['field_accuracy']:.1%}")
+    print(f"- Specific Career Model Accuracy: {results['career_accuracy']:.1%}")
+    print(f"- Average Hierarchical Accuracy: {np.mean([results['broad_accuracy'], results['field_accuracy'], results['career_accuracy']]):.1%}")
+    print(f"- Total Features Engineered: {X.shape[1]}")
+    print(f"- Training Time: {training_time:.1f} seconds")
     
-    print(f"\n📁 FILES CREATED:")
-    print(f"• models/ultimate_broad_model.joblib")
-    print(f"• models/ultimate_field_model.joblib")
-    print(f"• models/ultimate_career_model.joblib")
-    print(f"• models/broad_encoder.joblib")
-    print(f"• models/field_encoder.joblib")
-    print(f"• models/career_encoder.joblib")
-    print(f"• results/ultimate_model_results_[timestamp].json")
-    print(f"• results/ultimate_*_importance.csv (3 files)")
+    print(f"\n FILES CREATED:")
+    print(f"- models/ultimate_broad_model.joblib")
+    print(f"- models/ultimate_field_model.joblib")
+    print(f"- models/ultimate_career_model.joblib")
+    print(f"- models/broad_encoder.joblib")
+    print(f"- models/field_encoder.joblib")
+    print(f"- models/career_encoder.joblib")
+    print(f"- results/ultimate_model_results_[timestamp].json")
+    print(f"- results/ultimate_*_importance.csv (3 files)")
     
-    print(f"\n🌟 The Ultimate Career Prediction System is ready!")
+    print(f"\n The Ultimate Career Prediction System is ready!")
     print(f"   Use the UltimateCareerPredictor class for hierarchical predictions")
     print(f"   with confidence scoring at all levels!")
 
@@ -1020,8 +1059,8 @@ if __name__ == "__main__":
     try:
         main()
     except KeyboardInterrupt:
-        print("\n\n⚠️  Ultimate training interrupted by user")
+        print("\n\nUltimate training interrupted by user")
     except Exception as e:
-        print(f"\n❌ Error during ultimate training: {str(e)}")
+        print(f"\n Error during ultimate training: {str(e)}")
         import traceback
         traceback.print_exc()

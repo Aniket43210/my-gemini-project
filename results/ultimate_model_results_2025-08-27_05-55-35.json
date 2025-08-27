@@ -1,0 +1,268 @@
+{
+  "model_info": {
+    "training_timestamp": "2025-08-27_05-55-35",
+    "model_type": "Ultimate Hierarchical Career Prediction",
+    "architecture": "3-Level Hierarchy (Broad -> Field -> Specific)",
+    "ensemble_method": "XGBoost + RandomForest with Soft Voting",
+    "features_count": 51,
+    "samples_count": 1050
+  },
+  "hierarchical_performance": {
+    "broad_category_accuracy": 0.5238095238095238,
+    "field_model_accuracy": 0.3523809523809524,
+    "specific_career_accuracy": 0.12380952380952381,
+    "average_accuracy": 0.3333333333333333
+  },
+  "model_details": {
+    "broad_categories": 5,
+    "broad_classes": [
+      "Business",
+      "Creative",
+      "Healthcare",
+      "Other",
+      "STEM"
+    ],
+    "field_categories": 10,
+    "field_classes": [
+      "architecture",
+      "design",
+      "engineering",
+      "healthcare_analytics",
+      "healthcare_it",
+      "healthcare_support",
+      "media",
+      "other",
+      "product_management",
+      "research"
+    ],
+    "career_categories": 21,
+    "career_classes": [
+      "AI Engineer",
+      "Art Director",
+      "Biomedical Engineer",
+      "Business Analyst",
+      "Clinical Researcher",
+      "Content Creator",
+      "Data Scientist",
+      "DevOps Engineer",
+      "Financial Analyst",
+      "Game Designer",
+      "Health Informatics Specialist",
+      "Healthcare Analyst",
+      "Marketing Manager",
+      "Medical Technologist",
+      "Product Manager",
+      "Research Scientist",
+      "Software Engineer",
+      "Strategy Consultant",
+      "Systems Architect",
+      "UX Designer",
+      "Visual Designer"
+    ]
+  },
+  "feature_engineering": {
+    "total_features": 51,
+    "feature_categories": {
+      "academic_features": 6,
+      "personality_features": 5,
+      "hobby_features": 10,
+      "binary_hobby_features": 12,
+      "derived_features": 10,
+      "orientation_features": 4,
+      "specialization_indices": 3
+    },
+    "all_features": [
+      "math_grade",
+      "science_grade",
+      "english_grade",
+      "social_grade",
+      "language_grade",
+      "openness",
+      "conscientiousness",
+      "extraversion",
+      "agreeableness",
+      "neuroticism",
+      "num_hobbies",
+      "avg_hobby_intensity",
+      "avg_hobby_proficiency",
+      "avg_hobby_years",
+      "max_hobby_intensity",
+      "max_hobby_proficiency",
+      "hobby_intensity_std",
+      "hobby_proficiency_std",
+      "has_programming",
+      "has_research",
+      "has_writing",
+      "has_music",
+      "has_sports",
+      "has_cooking",
+      "has_volunteering",
+      "has_photography",
+      "has_gaming",
+      "has_robotics",
+      "has_reading",
+      "has_entrepreneurship",
+      "stem_score",
+      "humanities_score",
+      "stem_vs_humanities",
+      "academic_consistency",
+      "academic_peak",
+      "academic_average",
+      "leadership_potential",
+      "analytical_disposition",
+      "people_orientation",
+      "stress_resilience",
+      "innovation_potential",
+      "detail_orientation",
+      "collaboration_score",
+      "adaptability_score",
+      "technical_orientation",
+      "creative_orientation",
+      "social_orientation",
+      "research_orientation",
+      "hobby_specialization_index",
+      "academic_specialization_index",
+      "personality_extremity"
+    ]
+  },
+  "top_features": {
+    "broad_category_top_10": [
+      {
+        "feature": "stem_vs_humanities",
+        "importance": 0.1193302571773529
+      },
+      {
+        "feature": "stem_score",
+        "importance": 0.08643536269664764
+      },
+      {
+        "feature": "english_grade",
+        "importance": 0.05933244153857231
+      },
+      {
+        "feature": "creative_orientation",
+        "importance": 0.05559214949607849
+      },
+      {
+        "feature": "has_sports",
+        "importance": 0.045792821794748306
+      },
+      {
+        "feature": "math_grade",
+        "importance": 0.04532772675156593
+      },
+      {
+        "feature": "has_writing",
+        "importance": 0.038669221103191376
+      },
+      {
+        "feature": "social_orientation",
+        "importance": 0.03568137437105179
+      },
+      {
+        "feature": "research_orientation",
+        "importance": 0.03251879662275314
+      },
+      {
+        "feature": "social_grade",
+        "importance": 0.03197590634226799
+      }
+    ],
+    "field_level_top_10": [
+      {
+        "feature": "stem_vs_humanities",
+        "importance": 0.10839047282934189
+      },
+      {
+        "feature": "english_grade",
+        "importance": 0.05446570739150047
+      },
+      {
+        "feature": "stem_score",
+        "importance": 0.05242142081260681
+      },
+      {
+        "feature": "has_programming",
+        "importance": 0.041676487773656845
+      },
+      {
+        "feature": "science_grade",
+        "importance": 0.03989405184984207
+      },
+      {
+        "feature": "research_orientation",
+        "importance": 0.03986845910549164
+      },
+      {
+        "feature": "math_grade",
+        "importance": 0.03889196738600731
+      },
+      {
+        "feature": "social_grade",
+        "importance": 0.03871571272611618
+      },
+      {
+        "feature": "social_orientation",
+        "importance": 0.03406751900911331
+      },
+      {
+        "feature": "has_music",
+        "importance": 0.03139515593647957
+      }
+    ],
+    "career_level_top_10": [
+      {
+        "feature": "stem_vs_humanities",
+        "importance": 0.07924096286296844
+      },
+      {
+        "feature": "english_grade",
+        "importance": 0.05405081436038017
+      },
+      {
+        "feature": "stem_score",
+        "importance": 0.052340876311063766
+      },
+      {
+        "feature": "has_photography",
+        "importance": 0.04655039310455322
+      },
+      {
+        "feature": "has_programming",
+        "importance": 0.03980178013443947
+      },
+      {
+        "feature": "humanities_score",
+        "importance": 0.038601912558078766
+      },
+      {
+        "feature": "has_music",
+        "importance": 0.03793363645672798
+      },
+      {
+        "feature": "social_grade",
+        "importance": 0.03762946277856827
+      },
+      {
+        "feature": "math_grade",
+        "importance": 0.0365617536008358
+      },
+      {
+        "feature": "language_grade",
+        "importance": 0.036058343946933746
+      }
+    ]
+  },
+  "improvements_applied": [
+    " Complete 3-level hierarchical prediction",
+    " 50+ engineered features with advanced combinations",
+    " SMOTE for class imbalance handling at all levels",
+    " Ensemble methods (XGBoost + RandomForest)",
+    " Soft voting for robust predictions",
+    " Comprehensive feature importance analysis",
+    " Enhanced data cleaning and validation",
+    " XGBoost compatibility fixes",
+    " Advanced personality-derived features",
+    " Specialization and orientation indices"
+  ]
+}

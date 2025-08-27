@@ -74,7 +74,50 @@ class EnsembleCareerPredictor:
             weights = [1/len(base_models)] * len(base_models)  # Equal weights if all failed
         
         # Create voting ensemble
-        estimators = [(name, model) for name, model in base_models.items()]
+        # Determine the number of classes from the training data
+        num_classes = len(np.unique(y))
+
+        # Wrapper to ensure predict_proba returns consistent shape
+class _ProbaStandardizer:
+    def __init__(self, estimator, num_classes):
+        self.estimator = estimator
+        self.num_classes = num_classes
+
+    def fit(self, X, y, sample_weight=None):
+        return self.estimator.fit(X, y, sample_weight)
+
+    def predict(self, X):
+        return self.estimator.predict(X)
+
+    def predict_proba(self, X):
+        proba = self.estimator.predict_proba(X)
+        if proba.ndim == 1:
+            # For binary classifiers that return 1D array, convert to 2D
+            proba = np.vstack([1 - proba, proba]).T
+        
+        # Ensure predict_proba always returns at least 2 columns for binary classification
+        # or matches the expected num_classes for multi-class.
+        if self.num_classes == 1:
+            # For binary classification (even if only one class is present in training data),
+            # ensure 2 columns: [prob_not_this_class, prob_this_class]
+            if proba.shape[1] == 1:
+                proba = np.hstack([1 - proba, proba])
+            elif proba.shape[1] > 2: # If more than 2 columns, truncate to 2 (shouldn't happen for binary)
+                proba = proba[:, :2]
+            # If proba.shape[1] is already 2, do nothing
+        elif proba.shape[1] < self.num_classes:
+            padding = np.zeros((proba.shape[0], self.num_classes - proba.shape[1]))
+            proba = np.hstack([proba, padding])
+        elif proba.shape[1] > self.num_classes:
+            # If a model predicts more classes than expected, truncate
+            proba = proba[:, :self.num_classes]
+        return proba
+
+    def __getattr__(self, name):
+        # Delegate other attributes to the underlying estimator
+        return getattr(self.estimator, name)
+
+        estimators = [(name, _ProbaStandardizer(model, num_classes)) for name, model in base_models.items()]
         
         if model_type == 'soft':
             voting_ensemble = VotingClassifier(
@@ -135,7 +178,26 @@ class EnsembleCareerPredictor:
                 return np.array(weighted_preds)
                 
             def predict_proba(self, X):
-                probabilities = np.array([model.predict_proba(X) for model in self.models])
+                all_probabilities = []
+                for model in self.models:
+                    proba = model.predict_proba(X)
+                    if proba.ndim == 1:  # Handle cases where predict_proba returns 1D array (e.g., for binary classification)
+                        proba = np.vstack([1 - proba, proba]).T
+                    all_probabilities.append(proba)
+                
+                # Ensure all probability arrays have the same number of columns
+                # This assumes all models predict the same number of classes or can be aligned
+                num_classes = max(p.shape[1] for p in all_probabilities)
+                padded_probabilities = []
+                for proba in all_probabilities:
+                    if proba.shape[1] < num_classes:
+                        # Pad with zeros if a model predicts fewer classes
+                        padding = np.zeros((proba.shape[0], num_classes - proba.shape[1]))
+                        padded_probabilities.append(np.hstack([proba, padding]))
+                    else:
+                        padded_probabilities.append(proba)
+
+                probabilities = np.array(padded_probabilities)
                 weighted_probs = np.average(probabilities, axis=0, weights=self.weights)
                 return weighted_probs
         

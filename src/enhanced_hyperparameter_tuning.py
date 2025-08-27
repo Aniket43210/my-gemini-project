@@ -25,7 +25,6 @@ class AdvancedHyperparameterTuner:
                 'reg_lambda': trial.suggest_float('reg_lambda', 1e-6, 10, log=True),
                 'min_child_weight': trial.suggest_int('min_child_weight', 1, 20),
                 'gamma': trial.suggest_float('gamma', 0, 5),
-                'scale_pos_weight': trial.suggest_float('scale_pos_weight', 0.1, 10),
                 'objective': 'multi:softprob',
                 'eval_metric': 'mlogloss',
                 'random_state': 42,
@@ -37,6 +36,10 @@ class AdvancedHyperparameterTuner:
                 # For broad categories, use simpler models
                 params['max_depth'] = min(params['max_depth'], 8)
                 params['n_estimators'] = min(params['n_estimators'], 1000)
+            elif model_type == 'field':
+                # For field categories, allow moderate complexity
+                params['max_depth'] = trial.suggest_int('max_depth', 3, 12)
+                params['n_estimators'] = trial.suggest_int('n_estimators', 150, 2500)
             elif model_type == 'specific':
                 # For specific careers, allow more complex models
                 params['max_depth'] = trial.suggest_int('max_depth', 4, 20)
@@ -45,7 +48,7 @@ class AdvancedHyperparameterTuner:
             model = xgb.XGBClassifier(**params)
             
             # Use stratified k-fold for better evaluation
-            cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
+            cv = StratifiedKFold(n_splits=3, shuffle=True, random_state=42)
             
             # Use F1-macro score for multi-class problems
             f1_scorer = make_scorer(f1_score, average='macro')

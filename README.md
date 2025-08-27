@@ -6,10 +6,10 @@ An AI-powered hierarchical career recommendation system that predicts career pat
 
 | **Hierarchy Level** | **Accuracy** | **Categories** |
 |---------------------|--------------|----------------|
-| 🌐 **Broad Category** | **97.6%** | 6 categories (STEM, Business, Creative, Social, Healthcare, Law) |
-| 🏢 **Field Level** | **94.7%** | 11 fields (Engineering, Data Science, Design, Education, etc.) |
-| 🎯 **Specific Career** | **96.8%** | 15 careers (Software Engineer, Data Scientist, Teacher, etc.) |
-| 📊 **Average** | **96.4%** | **Outstanding Performance!** |
+| 🌐 **Broad Category** | **71.0%** | 4 categories (Business, Creative, Healthcare, STEM) |
+| 🏢 **Field Level** | **42.9%** | 9 fields (Business/Finance, Data Science/Analytics, Design/Art, Engineering, Healthcare/Medical, IT/Systems, Marketing/Sales, Research/Science, Software Engineering) |
+| 🎯 **Specific Career** | **13.3%** | 21 careers |
+| 📊 **Average** | **42.4%** | (Based on current dataset) |
 
 ## 🎯 Features
 
@@ -100,18 +100,18 @@ print(f"Confidence: {prediction['primary_recommendation']['confidence']:.1%}")
 Input Features (51)
        ↓
 ┌─────────────────┐
-│ Broad Category  │ → STEM, Business, Creative, Social, Healthcare, Law
-│   (97.6%)       │
+│ Broad Category  │ → Business, Creative, Healthcare, STEM
+│   (71.0%)       │
 └─────────────────┘
        ↓
 ┌─────────────────┐
-│ Field Level     │ → Engineering, Data Science, Design, Education, etc.
-│   (94.7%)       │
+│ Field Level     │ → Business/Finance, Data Science/Analytics, Design/Art, Engineering, Healthcare/Medical, IT/Systems, Marketing/Sales, Research/Science, Software Engineering
+│   (42.9%)       │
 └─────────────────┘
        ↓
 ┌─────────────────┐
-│ Specific Career │ → Software Engineer, Data Scientist, Teacher, etc.
-│   (96.8%)       │
+│ Specific Career │ → (21 careers)
+│   (13.3%)       │
 └─────────────────┘
 ```
 
@@ -141,8 +141,8 @@ Input Features (51)
 3. **Career Level**: `academic_peak`, `has_robotics`, `stem_vs_humanities`
 
 ### Training Statistics
-- **Dataset Size**: 3,600 samples (240 per career)
-- **Training Time**: ~16 seconds
+- **Dataset Size**: 1,050 samples (50 per career)
+- **Training Time**: ~516.5 seconds (approx. 8.6 minutes)
 - **Model Size**: ~16.5MB total (6 files)
 - **Memory Usage**: Optimized for production deployment
 
@@ -161,6 +161,15 @@ Input Features (51)
 - **Scalable**: Fast prediction with ensemble methods
 - **Robust**: Handles missing data and edge cases
 - **Production-Ready**: Comprehensive error handling and validation
+
+## ⚠️ Important Note on Performance Discrepancy
+
+The model performance metrics (Accuracy and Categories) presented in this `README.md` reflect the results obtained with the current `synthetic_career_data.json` (1,050 samples across 21 careers). These figures may differ significantly from the original project's stated performance, which was likely based on a larger dataset (e.g., 3,600 samples across 15 careers) and different career-to-category mappings.
+
+Achieving higher accuracies, as seen in some previous versions of this project, would typically require:
+- A larger and more diverse dataset.
+- A dataset with a different distribution of careers, potentially fewer careers with more samples per career.
+- Further hyperparameter tuning with more extensive search spaces and trials.
 
 ---
 
