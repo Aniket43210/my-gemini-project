@@ -6,10 +6,10 @@ An AI-powered hierarchical career recommendation system that predicts career pat
 
 | **Hierarchy Level** | **Accuracy** | **Categories** |
 |---------------------|--------------|----------------|
-| 🌐 **Broad Category** | **71.0%** | 4 categories (Business, Creative, Healthcare, STEM) |
-| 🏢 **Field Level** | **42.9%** | 9 fields (Business/Finance, Data Science/Analytics, Design/Art, Engineering, Healthcare/Medical, IT/Systems, Marketing/Sales, Research/Science, Software Engineering) |
-| 🎯 **Specific Career** | **13.3%** | 21 careers |
-| 📊 **Average** | **42.4%** | (Based on current dataset) |
+| 🌐 **Broad Category** | **71.9%** | 4 categories (Business, Creative, Healthcare, STEM) |
+| 🏢 **Field Level** | **45.2%** | 9 fields (Business/Finance, Data Science/Analytics, Design/Art, Engineering, Healthcare/Medical, IT/Systems, Marketing/Sales, Research/Science, Software Engineering) |
+| 🎯 **Specific Career** | **14.8%** | 21 careers |
+| 📊 **Average** | **44.0%** | (Based on current dataset) |
 
 ## 🎯 Features
 
@@ -24,7 +24,11 @@ An AI-powered hierarchical career recommendation system that predicts career pat
 
 ```
 ├── main.py                     # Main training script (Ultimate version)
+├── app.py                      # Flask web application
+├── simple_predictor.py         # Standalone prediction engine
 ├── requirements.txt            # Python dependencies
+├── templates/                  # Web UI templates
+│   └── index.html             # Main web interface
 ├── data/                       # Training datasets
 │   ├── enhanced_career_data.json
 │   └── synthetic_career_data.json
@@ -40,6 +44,7 @@ An AI-powered hierarchical career recommendation system that predicts career pat
 │   ├── data_generator.py
 │   ├── data_augmentation_enhancer.py
 │   └── [other utility modules]
+├── tests/                      # Unit tests
 └── config/                     # Configuration
     └── hobby_taxonomy.py
 ```
@@ -56,23 +61,18 @@ pip install -r requirements.txt
 python main.py
 ```
 
-### 3. Use Trained Models
+### 3. Run Web Application
+```bash
+python app.py
+```
+Then open http://127.0.0.1:5000 in your browser.
+
+### 4. Use Trained Models Programmatically
 ```python
-import joblib
-from main import create_ultimate_predictor, create_ultimate_features
+from simple_predictor import SimpleCareerPredictor
 
-# Load trained models
-results = {
-    'broad_model': joblib.load('models/ultimate_broad_model.joblib'),
-    'field_model': joblib.load('models/ultimate_field_model.joblib'),
-    'career_model': joblib.load('models/ultimate_career_model.joblib'),
-    'broad_encoder': joblib.load('models/broad_encoder.joblib'),
-    'field_encoder': joblib.load('models/field_encoder.joblib'),
-    'career_encoder': joblib.load('models/career_encoder.joblib')
-}
-
-# Create predictor
-predictor = create_ultimate_predictor(results)
+# Create predictor (loads models automatically)
+predictor = SimpleCareerPredictor()
 
 # Make prediction
 prediction = predictor.predict_user_career(
@@ -152,14 +152,16 @@ Input Features (51)
 - **HR & Recruitment**: Screen candidates for role fit
 - **Career Coaching**: Provide data-driven career guidance
 - **Personal Development**: Self-assessment and career exploration
+- **Web Applications**: Interactive career exploration and guidance
 - **Mobile Apps**: Career exploration and guidance applications
 
 ## 🌟 Key Advantages
 
-- **High Accuracy**: 96.4% average across all hierarchy levels
+- **Web Interface**: Interactive Flask web app with beautiful UI
+- **Hierarchical Predictions**: 3-level career recommendation system
 - **Interpretable**: Clear feature importance and reasoning
 - **Scalable**: Fast prediction with ensemble methods
-- **Robust**: Handles missing data and edge cases
+- **Robust**: Handles missing data and edge cases with demo mode fallback
 - **Production-Ready**: Comprehensive error handling and validation
 
 ## ⚠️ Important Note on Performance Discrepancy
