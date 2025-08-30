@@ -14,7 +14,7 @@ from flask import Flask, render_template, request, jsonify
 sys.path.append('src')
 sys.path.append('.')
 
-from simple_predictor import SimpleCareerPredictor
+from main import create_ultimate_features
 
 app = Flask(__name__)
 
@@ -27,14 +27,128 @@ def load_models():
     global predictor, models_loaded
     
     try:
-        # Create predictor
-        predictor = SimpleCareerPredictor()
-        models_loaded = predictor.models_loaded
+        model_dir = "models"
         
-        return models_loaded
+        # Check if models exist
+        required_files = [
+            f"{model_dir}/ultimate_broad_model.joblib",
+            f"{model_dir}/ultimate_field_model.joblib", 
+            f"{model_dir}/ultimate_career_model.joblib",
+            f"{model_dir}/broad_encoder.joblib",
+            f"{model_dir}/field_encoder.joblib",
+            f"{model_dir}/career_encoder.joblib"
+        ]
+        
+        missing_files = [f for f in required_files if not os.path.exists(f)]
+        if missing_files:
+            print(f"Missing model files: {missing_files}")
+            print("Run 'python main.py' to train models first")
+            return False
+        
+        # Load models
+        results = {
+            'broad_model': joblib.load(f"{model_dir}/ultimate_broad_model.joblib"),
+            'field_model': joblib.load(f"{model_dir}/ultimate_field_model.joblib"),
+            'career_model': joblib.load(f"{model_dir}/ultimate_career_model.joblib"),
+            'broad_encoder': joblib.load(f"{model_dir}/broad_encoder.joblib"),
+            'field_encoder': joblib.load(f"{model_dir}/field_encoder.joblib"),
+            'career_encoder': joblib.load(f"{model_dir}/career_encoder.joblib")
+        }
+        
+        # Create predictor class
+        class UltimateCareerPredictor:
+            def __init__(self, results):
+                self.broad_model = results['broad_model']
+                self.field_model = results['field_model']
+                self.career_model = results['career_model']
+                self.broad_encoder = results['broad_encoder']
+                self.field_encoder = results['field_encoder']
+                self.career_encoder = results['career_encoder']
+                
+            def predict_user_career(self, academic_grades, hobbies, personality):
+                """Make hierarchical predictions with confidence scoring"""
+                # Create user features
+                user_data = [{
+                    'academic_grades': academic_grades,
+                    'hobbies': hobbies,
+                    'personality': personality,
+                    'career': 'unknown'
+                }]
+                
+                user_features, _ = create_ultimate_features(user_data)
+                
+                # Make broad category prediction
+                broad_proba = self.broad_model.predict_proba(user_features)[0]
+                broad_pred = self.broad_encoder.inverse_transform([np.argmax(broad_proba)])[0]
+                broad_confidence = max(broad_proba)
+                
+                # Make field prediction
+                field_proba = self.field_model.predict_proba(user_features)[0]
+                field_pred = self.field_encoder.inverse_transform([np.argmax(field_proba)])[0]
+                field_confidence = max(field_proba)
+                
+                # Make career prediction
+                career_proba = self.career_model.predict_proba(user_features)[0]
+                career_pred = self.career_encoder.inverse_transform([np.argmax(career_proba)])[0]
+                career_confidence = max(career_proba)
+                
+                # Get top alternatives for each level
+                top_broad_indices = np.argsort(broad_proba)[-3:][::-1]
+                top_broad_alternatives = [
+                    {'category': self.broad_encoder.inverse_transform([idx])[0], 'confidence': broad_proba[idx]}
+                    for idx in top_broad_indices
+                ]
+                
+                top_field_indices = np.argsort(field_proba)[-3:][::-1]
+                top_field_alternatives = [
+                    {'category': self.field_encoder.inverse_transform([idx])[0], 'confidence': field_proba[idx]}
+                    for idx in top_field_indices
+                ]
+                
+                top_career_indices = np.argsort(career_proba)[-5:][::-1]
+                top_career_alternatives = [
+                    {'career': self.career_encoder.inverse_transform([idx])[0], 'confidence': career_proba[idx]}
+                    for idx in top_career_indices
+                ]
+                
+                return {
+                    'primary_recommendation': {
+                        'career': career_pred,
+                        'confidence': career_confidence,
+                        'level': 'specific'
+                    },
+                    'hierarchical_predictions': {
+                        'broad': {'category': broad_pred, 'confidence': broad_confidence},
+                        'field': {'category': field_pred, 'confidence': field_confidence},
+                        'specific': {'category': career_pred, 'confidence': career_confidence}
+                    },
+                    'top_alternatives': {
+                        'broad_categories': top_broad_alternatives,
+                        'fields': top_field_alternatives,
+                        'careers': top_career_alternatives
+                    },
+                    'recommendation_reasoning': [
+                        f'Broad category match: {broad_pred} (confidence: {broad_confidence:.1%})',
+                        f'Field specialization: {field_pred} (confidence: {field_confidence:.1%})',
+                        f'Specific career recommendation: {career_pred} (confidence: {career_confidence:.1%})',
+                        f'Analysis based on {user_features.shape[1]} engineered features and hierarchical ensemble learning'
+                    ]
+                }
+        
+        predictor = UltimateCareerPredictor(results)
+        models_loaded = True
+        
+        print("Models loaded successfully!")
+        print(f"   Broad categories: {len(results['broad_encoder'].classes_)}")
+        print(f"   Fields: {len(results['field_encoder'].classes_)}")
+        print(f"   Careers: {len(results['career_encoder'].classes_)}")
+        
+        return True
         
     except Exception as e:
         print(f"Error loading models: {str(e)}")
+        import traceback
+        traceback.print_exc()
         return False
 
 @app.route('/')

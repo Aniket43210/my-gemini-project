@@ -25,7 +25,7 @@ An AI-powered hierarchical career recommendation system that predicts career pat
 ```
 ├── main.py                     # Main training script (Ultimate version)
 ├── app.py                      # Flask web application
-├── simple_predictor.py         # Standalone prediction engine
+
 ├── requirements.txt            # Python dependencies
 ├── templates/                  # Web UI templates
 │   └── index.html             # Main web interface
@@ -69,28 +69,44 @@ Then open http://127.0.0.1:5000 in your browser.
 
 ### 4. Use Trained Models Programmatically
 ```python
-from simple_predictor import SimpleCareerPredictor
+import joblib
+from main import create_ultimate_features
 
-# Create predictor (loads models automatically)
-predictor = SimpleCareerPredictor()
+# Load trained models
+results = {
+    'broad_model': joblib.load('models/ultimate_broad_model.joblib'),
+    'field_model': joblib.load('models/ultimate_field_model.joblib'),
+    'career_model': joblib.load('models/ultimate_career_model.joblib'),
+    'broad_encoder': joblib.load('models/broad_encoder.joblib'),
+    'field_encoder': joblib.load('models/field_encoder.joblib'),
+    'career_encoder': joblib.load('models/career_encoder.joblib')
+}
 
-# Make prediction
-prediction = predictor.predict_user_career(
-    academic_grades={
+# Create user data and features
+user_data = [{
+    'academic_grades': {
         'mathematics': 0.85, 'science': 0.80, 'english': 0.75,
         'social_science': 0.60, 'second_language': 0.65
     },
-    hobbies={
+    'hobbies': {
         'programming': {'intensity': 0.9, 'proficiency': 0.8, 'years': 4}
     },
-    personality={
+    'personality': {
         'openness': 0.85, 'conscientiousness': 0.75, 'extraversion': 0.45,
         'agreeableness': 0.65, 'neuroticism': 0.35
-    }
-)
+    },
+    'career': 'unknown'
+}]
 
-print(f"Recommended Career: {prediction['primary_recommendation']['career']}")
-print(f"Confidence: {prediction['primary_recommendation']['confidence']:.1%}")
+user_features, _ = create_ultimate_features(user_data)
+
+# Make predictions
+career_proba = results['career_model'].predict_proba(user_features)[0]
+career_pred = results['career_encoder'].inverse_transform([np.argmax(career_proba)])[0]
+career_confidence = max(career_proba)
+
+print(f"Recommended Career: {career_pred}")
+print(f"Confidence: {career_confidence:.1%}")
 ```
 
 ## 📊 Model Architecture

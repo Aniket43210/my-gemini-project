@@ -8,7 +8,7 @@
 - **Build for deployment**: `bash build.sh` (installs dependencies)
 - **Install dependencies**: `pip install -r requirements.txt`
 - **Run web app**: `python app.py` (Flask server on http://127.0.0.1:5000)
-- **Test predictor**: `python simple_predictor.py`
+
 
 ## Architecture & Codebase Structure
 - **Python ML project** with hierarchical career prediction using XGBoost + RandomForest
